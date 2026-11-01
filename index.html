@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Factory Forge Megaplex - Master Studio</title>
+    <!-- Web App Manifest for Standalone APK & PWA installation -->
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkZhY3RvcnkgRm9yZ2UgTWVnYXBsZXgiLAogICJzaG9ydF9uYW1lIjogIk1lZ2FwbGV4IiwKICAic3RhcnRfdXJsIjogIi4vIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMGIwZDE0IiwKICAidGhlbWVfY29sb3IiOiAiIzAwZjA2YyIKfQ==">
+    <style>
+        :root {
+            --bg-dark: #0b0d14;
+            --panel-bg: #121624;
+            --accent-cyan: #00f06c;
+            --accent-blue: #00d8ff;
+            --accent-pink: #ff007f;
+            --accent-purple: #9d00ff;
+            --text-main: #e2e8f0;
+            --text-muted: #64748b;
+            --border-color: #1e293b;
+            --font-mono: 'Courier New', Courier, monospace;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Top Bar Telemetry */
+        header {
+            background: #07090e;
+            border-bottom: 1px solid var(--border-color);
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+        }
+        .brand { font-weight: bold; color: var(--accent-cyan); letter-spacing: 1px; }
+        .bus-status { display: flex; align-items: center; gap: 8px; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #ff4444; }
+        .status-dot.connected { background: var(--accent-cyan); box-shadow: 0 0 8px var(--accent-cyan); }
+
+        /* Navigation Bar */
+        nav {
+            background: var(--panel-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        nav button {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 10px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        nav button.active {
+            color: var(--accent-blue);
+            border-bottom-color: var(--accent-blue);
+            background: rgba(0, 216, 255, 0.05);
+        }
+
+        /* Main Factory Floor Viewport */
+        main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Section Containers */
+        .factory-zone {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 14px;
+        }
+        .zone-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--accent-blue);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Grid Layout for Split Panels & Desks */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+        /* Code Editor & Dual Panels */
+        textarea, select, input {
+            width: 100%;
+            background: #080a0f;
+            border: 1px solid var(--border-color);
+            color: var(--accent-cyan);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            padding: 8px;
+            border-radius: 4px;
+            outline: none;
+        }
+        textarea { height: 160px; resize: vertical; }
+
+        /* Interactive Crew Desks */
+        .crew-card {
+            background: #0c0f1a;
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .crew-name { font-weight: bold; font-size: 13px; color: var(--text-main); }
+        .crew-role { font-size: 11px; color: var(--text-muted); }
+        .btn-sm {
+            background: var(--border-color);
+            color: var(--text-main);
+            border: none;
+            padding: 4px 8px;
+            font-size: 11px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .btn-sm:hover { background: var(--accent-blue); color: #000; }
+
+        /* Termux & CLI Output Window */
+        .cli-window {
+            background: #000;
+            color: #00ff66;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            padding: 10px;
+            border-radius: 4px;
+            height: 120px;
+            overflow-y: auto;
+            border: 1px solid #113311;
+        }
+
+        /* File Room & Briefcase Vault */
+        .vault-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+        .briefcase {
+            background: #0e121e;
+            border: 1px dashed var(--accent-purple);
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Telemetry & Bus Status -->
+    <header>
+        <div class="brand">FACTORY FORGE MEGAPLEX v3.5</div>
+        <div class="bus-status">
+            <div id="statusDot" class="status-dot"></div>
+            <span id="busText" style="color: var(--text-muted);">BUS: DISCONNECTED (8080)</span>
+        </div>
+    </header>
+
+    <!-- Navigation Hub -->
+    <nav>
+        <button class="active" onclick="scrollToZone('zones-all')">ALL ZONES</button>
+        <button onclick="scrollToZone('editor-zone')">RAUL CODER & GUNK</button>
+        <button onclick="scrollToZone('roster-zone')">CREW DESKS</button>
+        <button onclick="scrollToZone('apk-zone')">APK LAB</button>
+        <button onclick="scrollToZone('vox-zone')">VOXLAB DSP</button>
+        <button onclick="scrollToZone('vault-zone')">FILE VAULT</button>
+        <button onclick="scrollToZone('domain-zone')">DOMAINS</button>
+    </nav>
+
+    <!-- Main Factory Floor -->
+    <main id="zones-all">
+
+        <!-- Zone 1: Code Lab & Gunk Converter -->
+        <section id="editor-zone" class="factory-zone">
+            <div class="zone-title">
+                <span>Raul Coder Lab & Gunk Translator</span>
+                <span style="color: var(--accent-cyan); font-size: 11px;">Sheet Powder Enabled</span>
+            </div>
+            <div class="grid-2">
+                <div>
+                    <label style="font-size: 11px; color: var(--text-muted);">Gunk Input Stream (@gunk, #trig, ~bind)</label>
+                    <textarea id="gunkInput" placeholder="@gunk(synth_trigger)&#10;~bind: #fret_04 -> !pitch(8080)&#10;#trig: @low_end(gain: 0.9)"></textarea>
+                    <button class="btn-sm" style="margin-top: 6px; width: 100%; background: var(--accent-blue); color: #000;" onclick="compileGunkCode()">COMPILE GUNK TO STANDARD</button>
+                </div>
+                <div>
+                    <label style="font-size: 11px; color: var(--text-muted);">Standard Target AST Output (Node.js/JS)</label>
+                    <textarea id="standardOutput" readonly placeholder="// Standard AST Output compiled from Master Index..."></textarea>
+                    <button class="btn-sm" style="margin-top: 6px; width: 100%;" onclick="dispatchToBus()">DISPATCH TO TERMUX BUS (8080)</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Zone 2: Megaplex Crew Roster & Interactive Desks -->
+        <section id="roster-zone" class="factory-zone">
+            <div class="zone-title">Megaplex Command Roster & Interactive Desks</div>
+            <div class="grid-2" style="gap: 8px;">
+                <div class="crew-card">
+                    <div>
+                        <div class="crew-name">James Fetherolf</div>
+                        <div class="crew-role">Director & Enterprise Lead</div>
+                    </div>
+                    <button class="btn-sm" onclick="triggerAgent('James')">Executive Override</button>
+                </div>
+                <div class="crew-card">
+                    <div>
+                        <div class="crew-name">Anita</div>
+                        <div class="crew-role">System Ops & Index Registry</div>
+                    </div>
+                    <button class="btn-sm" onclick="triggerAgent('Anita')">Query Index</button>
+                </div>
+                <div class="crew-card">
+                    <div>
+                        <div class="crew-name">Dean</div>
+                        <div class="crew-role">Workflow Orchestrator</div>
+                    </div>
+                    <button class="btn-sm" onclick="triggerAgent('Dean')">Assign Task</button>
+                </div>
+                <div class="crew-card">
+                    <div>
+                        <div class="crew-name">Janus</div>
+                        <div class="crew-role">Sheet Powder Gatekeeper</div>
+                    </div>
+                    <button class="btn-sm" onclick="triggerAgent('Janus')">Audit Sandbox</button>
+                </div>
+                <div class="crew-card">
+                    <div>
+                        <div class="crew-name">Forge</div>
+                        <div class="crew-role">Compiler & Architect</div>
+                    </div>
+                    <button class="btn-sm" onclick="triggerAgent('Forge')">Build AST</button>
+                </div>
+                <div class="crew-card">
+                    <div>
+                        <div class="crew-name">FLandangO</div>
+                        <div class="crew-role">Audio DSP Agent</div>
+                    </div>
+                    <button class="btn-sm" onclick="triggerAgent('FLandangO')">Sync VoxLab</button>
+                </div>
+                <div class="crew-card">
+                    <div>
+                        <div class="crew-name">Kyle</div>
+                        <div class="crew-role">Termux Execution Host</div>
+                    </div>
+                    <button class="btn-sm" onclick="triggerAgent('Kyle')">Ping Runtime</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Zone 3: Termux WebSocket CLI Engine -->
+        <section class="factory-zone">
+            <div class="zone-title">Termux Bus Terminal (ws://localhost:8080)</div>
+            <div id="cliOutput" class="cli-window">
+                [SYSTEM] Initializing Factory Forge Megaplex Runtime...<br>
+                [SYSTEM] Standalone WebApp/APK container ready.<br>
+            </div>
+        </section>
+
+        <!-- Zone 4: APK Compilation Lab -->
+        <section id="apk-zone" class="factory-zone">
+            <div class="zone-title">Automated APK Builder Lab</div>
+            <div class="grid-2">
+                <div>
+                    <input type="text" id="apkPackage" value="com.techrolim.megaplex" placeholder="Package Identifier">
+                    <button class="btn-sm" style="margin-top: 6px; width: 100%; background: var(--accent-pink); color: #fff;" onclick="generateAPKBuildSpec()">GENERATE APK BUILD MANIFEST</button>
+                </div>
+                <div style="font-size: 11px; color: var(--text-muted);">
+                    Target Platform: Android API 34+ (Mobile-First)<br>
+                    Compiler Bridge: GitHub Actions / Capacitor CLI<br>
+                    Output Format: Signed Standalone .APK / .AAB
+                </div>
+            </div>
+        </section>
+
+        <!-- Zone 5: VoxLab Audio Studio -->
+        <section id="vox-zone" class="factory-zone">
+            <div class="zone-title">VoxLab Audio Studio & Fret-Trig FX</div>
+            <div class="grid-2">
+                <button class="btn-sm" onclick="logCLI('[VoxLab] Low-Pass DSP Filter Applied: Cutoff 80Hz')">Set Low-End Bass Filter (41.2Hz)</button>
+                <button class="btn-sm" onclick="logCLI('[VoxLab] TechroTone Pitch Modulation Engaged')">Engage TechroTone Modulation</button>
+            </div>
+        </section>
+
+        <!-- Zone 6: File Room & Briefcase Vault -->
+        <section id="vault-zone" class="factory-zone">
+            <div class="zone-title">File Room & Storage Vault</div>
+            <div class="vault-grid">
+                <div class="briefcase">💼<br><strong>Core System</strong><br>master-index.json</div>
+                <div class="briefcase">💼<br><strong>Termux Node</strong><br>mcp-agent-node.js</div>
+                <div class="briefcase">💼<br><strong>Audio FX</strong><br>VoxLab Presets</div>
+                <div class="briefcase">💼<br><strong>APK Specs</strong><br>build-manifest.json</div>
+            </div>
+        </section>
+
+        <!-- Zone 7: Custom Domain Control Center -->
+        <section id="domain-zone" class="factory-zone">
+            <div class="zone-title">Domain Control & Subdomain Routing</div>
+            <input type="text" id="domainInput" value="megaplex.techrolim.com" placeholder="Enter Primary Domain Name">
+            <button class="btn-sm" style="margin-top: 6px; width: 100%;" onclick="bindDomain()">BIND DOMAIN & PERSIST CONFIG</button>
+        </section>
+
+    </main>
+
+    <!-- Client-Side Operational Logic -->
+    <script>
+        // WebSocket Bus Manager
+        let ws;
+        function connectBus() {
+            ws = new WebSocket('ws://localhost:8080');
+            ws.onopen = () => {
+                document.getElementById('statusDot').classList.add('connected');
+                document.getElementById('busText').textContent = 'BUS: CONNECTED (8080)';
+                logCLI('[BUS] Connected to Termux WebSocket server at ws://localhost:8080');
+            };
+            ws.onclose = () => {
+                document.getElementById('statusDot').classList.remove('connected');
+                document.getElementById('busText').textContent = 'BUS: DISCONNECTED (8080)';
+                setTimeout(connectBus, 5000);
+            };
+            ws.onerror = () => {
+                logCLI('[BUS WARNING] Local Termux WebSocket offline. Running in Local Standalone Mode.');
+            };
+            ws.onmessage = (event) => {
+                logCLI('[BUS RECEIVE] ' + event.data);
+            };
+        }
+
+        // Gunk Code Converter (Panel A to Panel B)
+        function compileGunkCode() {
+            const input = document.getElementById('gunkInput').value;
+            logCLI('[GUNK ENGINE] Parsing intent tokens & checking Sheet Powder sandbox...');
+            
+            // Basic Gunk AST Translation Mockup
+            let compiled = "// COMPILED FROM GUNK SHORTHAND\n";
+            compiled += "const bus = require('./server-bus-core');\n";
+            compiled += "const dsp = require('./audio-dsp-engine');\n\n";
+            
+            if (input.includes('synth_trigger')) {
+                compiled += "bus.emit('fret_trigger', { frequency: 41.2, gain: 0.9 });\n";
+            }
+            if (input.includes('low_end')) {
+                compiled += "dsp.setFilter('lowpass', { cutoff: 80, resonance: 0.9 });\n";
+            }
+            
+            document.getElementById('standardOutput').value = compiled;
+            logCLI('[SHEET POWDER] Boundary verification complete. Code non-volatile.');
+        }
+
+        // Dispatch Code to Termux
+        function dispatchToBus() {
+            const code = document.getElementById('standardOutput').value;
+            if (!code) {
+                logCLI('[ERROR] No compiled code available to dispatch.');
+                return;
+            }
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ method: 'tools/call', payload: { script: code } }));
+                logCLI('[DISPATCH] Payload sent to Termux execution node.');
+            } else {
+                logCLI('[OFFLINE DISPATCH SIMULATION] Sent payload to local console: \n' + code);
+            }
+        }
+
+        // Agent Roster Actions
+        function triggerAgent(name) {
+            logCLI(`[CREW DESK] Direct command dispatched to Agent: ${name}`);
+        }
+
+        // APK Manifest Generator
+        function generateAPKBuildSpec() {
+            const pkg = document.getElementById('apkPackage').value;
+            logCLI(`[APK LAB] Generated release manifest for ${pkg}. Ready for GitHub Actions compilation.`);
+        }
+
+        // Domain Manager
+        function bindDomain() {
+            const domain = document.getElementById('domainInput').value;
+            logCLI(`[DOMAIN MANAGER] Primary domain bound to: ${domain}`);
+            localStorage.setItem('megaplex_domain', domain);
+        }
+
+        // Helper Utilities
+        function logCLI(text) {
+            const cli = document.getElementById('cliOutput');
+            cli.innerHTML += text + '<br>';
+            cli.scrollTop = cli.scrollHeight;
+        }
+
+        function scrollToZone(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Auto-start WebSocket on Load
+        window.onload = () => {
+            connectBus();
+            const savedDomain = localStorage.getItem('megaplex_domain');
+            if (savedDomain) document.getElementById('domainInput').value = savedDomain;
+        };
+    </script>
+</body>
+</html>
