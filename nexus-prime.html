@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexus-Prime Core Dashboard</title>
+  <style>
+    body {
+      background-color: #0b0f19;
+      color: #00e5ff;
+      font-family: monospace;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      border-bottom: 1px solid #00e5ff;
+      padding-bottom: 10px;
+    }
+    .panel {
+      background: #111827;
+      border: 1px solid #1f2937;
+      padding: 15px;
+      margin-top: 15px;
+      border-radius: 4px;
+    }
+    input, button {
+      background: #1f2937;
+      color: #00e5ff;
+      border: 1px solid #00e5ff;
+      padding: 8px 12px;
+      font-family: monospace;
+      margin-right: 5px;
+    }
+    button:hover {
+      background: #00e5ff;
+      color: #0b0f19;
+      cursor: pointer;
+    }
+    #log {
+      background: #030712;
+      border: 1px solid #374151;
+      height: 200px;
+      overflow-y: auto;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Nexus-Prime Core Interface</h1>
+  
+  <div class="panel">
+    <h3>Connection Status: <span id="status" style="color: yellow;">Disconnected</span></h3>
+    <input type="text" id="wsUrl" value="ws://localhost:8097" style="width: 250px;">
+    <button onclick="connectWS()">Connect</button>
+    <button onclick="disconnectWS()">Disconnect</button>
+  </div>
+
+  <div class="panel">
+    <h3>Directive Dispatch</h3>
+    <input type="text" id="commandInput" placeholder="Enter core directive..." style="width: 300px;">
+    <button onclick="sendCommand()">Transmit</button>
+  </div>
+
+  <div class="panel">
+    <h3>Core Stream Log</h3>
+    <div id="log"></div>
+  </div>
+
+  <script>
+    let ws = null;
+    const logDiv = document.getElementById('log');
+    const statusSpan = document.getElementById('status');
+
+    function logMessage(msg) {
+      logDiv.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`;
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    function connectWS() {
+      const url = document.getElementById('wsUrl').value;
+      ws = new WebSocket(url);
+
+      ws.onopen = () => {
+        statusSpan.innerText = 'Connected';
+        statusSpan.style.color = '#00e5ff';
+        logMessage('Connected to Nexus-Prime core.');
+      };
+
+      ws.onmessage = (event) => {
+        logMessage(`RX: ${event.data}`);
+      };
+
+      ws.onclose = () => {
+        statusSpan.innerText = 'Disconnected';
+        statusSpan.style.color = 'red';
+        logMessage('Connection closed.');
+      };
+
+      ws.onerror = (err) => {
+        logMessage(`Error: ${err.message || 'WebSocket error'}`);
+      };
+    }
+
+    function disconnectWS() {
+      if (ws) ws.close();
+    }
+
+    function sendCommand() {
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        alert('WebSocket is not connected.');
+        return;
+      }
+      const val = document.getElementById('commandInput').value;
+      const payload = JSON.stringify({ directive: val, source: 'Nexus-Prime-UI' });
+      ws.send(payload);
+      logMessage(`TX: ${payload}`);
+      document.getElementById('commandInput').value = '';
+    }
+  </script>
+
+</body>
+</html>

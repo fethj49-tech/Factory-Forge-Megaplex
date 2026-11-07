@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TechroLim Megaplex Studio</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="megaplex-container">
+    <header>
+      <h1>TechroLim Megaplex</h1>
+      <p class="subtitle">Autonomous HTML-to-APK Compiler & Factory Pipeline</p>
+    </header>
+
+    <main>
+      <form id="buildForm" action="/submit-build" method="POST">
+        <div class="form-group">
+          <label for="projectName">Project / App Name:</label>
+          <input type="text" id="projectName" name="projectName" placeholder="e.g. TripWarpThrashApp" required>
+        </div>
+
+        <div class="form-group">
+          <label for="sourceContent">HTML / Source Code Payload:</label>
+          <textarea id="sourceContent" name="sourceContent" rows="10" placeholder="Paste your complete index.html or web app source code here..." required></textarea>
+        </div>
+
+        <button type="submit" class="btn-primary">Compile & Dispatch to Dean</button>
+      </form>
+    </main>
+
+    <footer>
+      <div class="status-indicator">
+        <span class="dot"></span> System Status: <strong>Online & Autonomous</strong>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>

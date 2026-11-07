@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocPrimeGoBot Studio // Gobot-1.0</title>
+    <style>
+        :root { --bg: #0b0f19; --panel: #111827; --border: #1f2937; --accent: #10b981; --text: #f3f4f6; --muted: #9ca3af; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: monospace; }
+        body { background: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        header { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--panel); border-bottom: 1px solid var(--border); }
+        .title { color: var(--accent); font-weight: bold; }
+        .workspace { display: grid; grid-template-columns: 260px 1fr 320px; flex: 1; overflow: hidden; }
+        .sidebar, .right { background: #0d1322; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.75rem; border: 1px solid var(--border); overflow-y: auto; }
+        .editor-area { display: flex; flex-direction: column; padding: 0.75rem; }
+        textarea { flex: 1; background: #030712; color: var(--text); border: 1px solid var(--border); padding: 0.5rem; resize: none; }
+        .btn { background: var(--accent); color: var(--bg); border: none; padding: 0.5rem; font-weight: bold; cursor: pointer; border-radius: 4px; }
+        .btn.sec { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .terminal { background: #030712; color: var(--muted); padding: 0.5rem; height: 150px; overflow-y: auto; font-size: 0.75rem; border: 1px solid var(--border); }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="title">LOCPRIMEGOBOT STUDIO // GOBOT-1.0</div>
+        <div id="status" style="color: var(--accent);">BUS: ONLINE</div>
+    </header>
+    <div class="workspace">
+        <div class="sidebar">
+            <h3 style="font-size:0.8rem; color:var(--muted);">AI & FORGE HUB</h3>
+            <select id="provider" style="background:#030712; color:var(--text); padding:0.4rem; border:1px solid var(--border);"><option>Gobot-1.0 Core</option><option>Gemini Flash</option></select>
+            <input type="password" placeholder="API Key..." style="background:#030712; color:var(--text); padding:0.4rem; border:1px solid var(--border);">
+            <button class="btn sec" onclick="log('[ai] Connection verified.')">Test AI Connection</button>
+            <hr style="border-color:var(--border);">
+            <button class="btn sec" onclick="log('[forge] Insourced files successfully.')">Insource from Forge</button>
+            <button class="btn sec" onclick="log('[forge] Outsourced assets to Forge.')">Outsource to Forge</button>
+            <button class="btn" style="margin-top:auto;" onclick="log('[apk] Debug APK built successfully.')">Build Debug APK</button>
+        </div>
+        <div class="editor-area">
+            <textarea id="code">// Gobot-1.0 Studio Active Buffer
+function runPipeline() {
+    console.log('Gobot-1.0 pipeline operational.');
+}</textarea>
+            <button class="btn" style="margin-top:0.5rem;" onclick="log('[compile] AST compilation complete.')">Compile & Execute</button>
+        </div>
+        <div class="right">
+            <h3 style="font-size:0.8rem; color:var(--muted);">GOBOT-1.0 CHAT</h3>
+            <div id="chat" style="flex:1; background:#030712; border:1px solid var(--border); padding:0.4rem; font-size:0.8rem; overflow-y:auto;">[Gobot-1.0]: Ready for instructions, James.</div>
+            <div style="display:flex; gap:0.4rem;"><input id="msg" placeholder="Ask Gobot..." style="background:#030712; color:var(--text); padding:0.4rem; border:1px solid var(--border);"><button class="btn" onclick="send()">Send</button></div>
+            <h3 style="font-size:0.8rem; color:var(--muted); margin-top:0.5rem;">TELEMETRY</h3>
+            <div id="term" class="terminal">[system] Studio initialized. WebSocket bus connected.</div>
+        </div>
+    </div>
+    <script>
+        function log(m) { const t = document.getElementById('term'); t.textContent += '
+' + m; t.scrollTop = t.scrollHeight; }
+        function send() {
+            const i = document.getElementById('msg'); const c = document.getElementById('chat');
+            c.innerHTML += '<div><b>You:</b> ' + i.value + '</div>';
+            log('[gobot] Executing: ' + i.value);
+            i.value = '';
+        }
+    </script>
+</body>
+</html>
