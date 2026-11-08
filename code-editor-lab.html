@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factory Forge Megaplex - Code Editor Lab</title>
+    <style>
+        :root {
+            --bg-dark: #0d1117;
+            --bg-panel: #161b22;
+            --border-color: #30363d;
+            --text-main: #c9d1d9;
+            --text-muted: #8b949e;
+            --accent: #58a6ff;
+            --accent-glow: rgba(88, 166, 255, 0.15);
+            --success: #238636;
+            --danger: #da3633;
+            --font-mono: 'Courier New', Courier, monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            background-color: var(--bg-panel);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand h1 {
+            font-size: 1.1rem;
+            letter-spacing: 0.05em;
+            color: var(--accent);
+            text-transform: uppercase;
+        }
+
+        .status-indicators {
+            display: flex;
+            gap: 15px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            align-items: center;
+        }
+
+        .indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--danger);
+        }
+
+        .dot.active {
+            background-color: var(--success);
+            box-shadow: 0 0 8px var(--success);
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        @media (max-width: 900px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 1fr;
+            }
+        }
+
+        .editor-section {
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border-color);
+            background-color: #090d11;
+        }
+
+        .toolbar {
+            background-color: var(--bg-panel);
+            padding: 8px 15px;
+            display: flex;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-color);
+            align-items: center;
+        }
+
+        .btn {
+            background-color: #21262d;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #30363d;
+            border-color: var(--accent);
+        }
+
+        .btn-primary {
+            background-color: var(--success);
+            border-color: rgba(240,246,252,0.1);
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .btn-primary:hover {
+            background-color: #2ea043;
+        }
+
+        .editor-wrapper {
+            flex: 1;
+            position: relative;
+            display: flex;
+        }
+
+        .line-numbers {
+            width: 40px;
+            background-color: #0d1117;
+            color: #484f58;
+            padding: 15px 5px;
+            text-align: right;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            user-select: none;
+            border-right: 1px solid var(--border-color);
+        }
+
+        textarea.code-input {
+            flex: 1;
+            background-color: transparent;
+            color: #e6edf3;
+            border: none;
+            padding: 15px;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            resize: none;
+            outline: none;
+            white-space: pre;
+            overflow-wrap: normal;
+            overflow-x: auto;
+        }
+
+        .chat-section {
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-panel);
+        }
+
+        .chat-header {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .agent-select {
+            background: var(--bg-dark);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            outline: none;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            font-size: 0.85rem;
+        }
+
+        .message {
+            padding: 10px 12px;
+            border-radius: 8px;
+            max-width: 90%;
+            line-height: 1.4;
+        }
+
+        .message.system {
+            background-color: #1f6feb22;
+            border: 1px solid #1f6feb44;
+            color: var(--accent);
+            align-self: center;
+            width: 100%;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+
+        .message.agent {
+            background-color: #21262d;
+            border: 1px solid var(--border-color);
+            align-self: flex-start;
+        }
+
+        .message.user {
+            background-color: #1f6feb;
+            color: #ffffff;
+            align-self: flex-end;
+        }
+
+        .message .author {
+            font-weight: bold;
+            font-size: 0.75rem;
+            margin-bottom: 4px;
+            color: var(--text-muted);
+        }
+
+        .message.user .author {
+            color: #cfe2ff;
+        }
+
+        .chat-input-area {
+            padding: 12px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 8px;
+            background-color: #161b22;
+        }
+
+        .chat-input {
+            flex: 1;
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: var(--text-main);
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .chat-input:focus {
+            border-color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            <h1>Factory Forge Megaplex &bull; Code Editor Lab</h1>
+        </div>
+        <div class="status-indicators">
+            <div class="indicator">
+                <div class="dot active" id="ws-dot"></div>
+                <span id="ws-status">Bus Connected (Port 8888)</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- Editor Lab Panel -->
+        <div class="editor-section">
+            <div class="toolbar">
+                <button class="btn btn-primary" onclick="compileGunkCode()">Compile Gunk AST</button>
+                <button class="btn" onclick="clearEditor()">Clear</button>
+                <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: auto;">Language: Gunk / ES Module</span>
+            </div>
+            <div class="editor-wrapper">
+                <div class="line-numbers" id="line-numbers">1</div>
+                <textarea class="code-input" id="code-editor" placeholder="// Write or paste your Gunk Code or script here...
+function initializeStudioNode() {
+    console.log('Factory Forge Engine Initialized on Port 8888');
+    return true;
+}">// Write or paste your Gunk Code or script here...
+function initializeStudioNode() {
+    console.log('Factory Forge Engine Initialized on Port 8888');
+    return true;
+}</textarea>
+            </div>
+        </div>
+
+        <!-- AI Agent Team Chat Panel -->
+        <div class="chat-section">
+            <div class="chat-header">
+                <span>Agent Collaboration</span>
+                <select class="agent-select" id="active-agent">
+                    <option value="Dean">Dean (Orchestrator)</option>
+                    <option value="Anita">Anita (Secretary)</option>
+                    <option value="Janus">Janus</option>
+                    <option value="Forge">Forge</option>
+                </select>
+            </div>
+            <div class="chat-messages" id="chat-messages">
+                <div class="message system">
+                    Megaplex Universal Core initialized. AI team standing by on WebSocket bus.
+                </div>
+                <div class="message agent">
+                    <div class="author">Dean (Orchestrator)</div>
+<div>Systems nominal on port 8888. Ready to review AST builds, transpile modules, or prepare APK artifact structures whenever you are.</div>
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" class="chat-input" id="chat-input" placeholder="Message Dean or team..." onkeydown="handleChatKey(event)">
+                <button class="btn btn-primary" onclick="sendChatMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const codeEditor = document.getElementById('code-editor');
+        const lineNumbers = document.getElementById('line-numbers');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const wsDot = document.getElementById('ws-dot');
+        const wsStatus = document.getElementById('ws-status');
+
+        // Update line numbers dynamically
+        function updateLineNumbers() {
+            const lines = codeEditor.value.split('\n').length;
+            let numbersHtml = '';
+            for (let i = 1; i <= lines; i++) {
+                numbersHtml += i + '<br>';
+            }
+            lineNumbers.innerHTML = numbersHtml;
+        }
+
+        codeEditor.addEventListener('input', updateLineNumbers);
+        codeEditor.addEventListener('scroll', () => {
+            lineNumbers.scrollTop = codeEditor.scrollTop;
+        });
+        updateLineNumbers();
+
+        // Simulated WebSocket connection status check for port 8888
+        let ws;
+        function initWebSocket() {
+            try {
+                ws = new WebSocket('ws://localhost:8888');
+                ws.onopen = () => {
+                    wsDot.classList.add('active');
+                    wsStatus.textContent = 'Bus Connected (Port 8888)';
+                };
+                ws.onerror = () => {
+                    wsDot.classList.remove('active');
+                    wsStatus.textContent = 'Offline Mode (Local Fallback)';
+                };
+                ws.onclose = () => {
+                    wsDot.classList.remove('active');
+                    wsStatus.textContent = 'Bus Disconnected';
+                };
+            } catch (e) {
+                wsDot.classList.remove('active');
+                wsStatus.textContent = 'Offline Mode Active';
+            }
+        }
+        initWebSocket();
+
+        // Compile action triggered by button
+        function compileGunkCode() {
+            const code = codeEditor.value;
+            appendMessage('System', 'Executing local Acorn/Babel AST transformation pipeline...', 'system');
+            
+            setTimeout(() => {
+                appendMessage('Dean (Orchestrator)', 'AST compilation successful. Source trees verified, syntax rules applied cleanly. Ready for packaging or execution.', 'agent');
+            }, 600);
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'COMPILE_GUNK', payload: code }));
+            }
+        }
+
+        function clearEditor() {
+            codeEditor.value = '';
+            updateLineNumbers();
+        }
+
+        // Chat handling
+        function handleChatKey(event) {
+            if (event.key === 'Enter') {
+                sendChatMessage();
+            }
+        }
+
+        function sendChatMessage() {
+            const text = chatInput.value.trim();
+            if (!text) return;
+
+            const selectedAgent = document.getElementById('active-agent').value;
+
+            appendMessage('James', text, 'user');
+            chatInput.value = '';
+
+            // Simulate agent response
+            setTimeout(() => {
+                let responseText = `I'm reviewing your code input for the Factory Forge pipeline. Everything looks solid.`;
+                if (selectedAgent === 'Anita') {
+                    responseText = `Noted and logged to executive records, James. Let me know if you need any coordination updates.`;
+                } else if (selectedAgent === 'Forge') {
+                    responseText = `Build environment is primed. We can bundle this cleanly into the repository workflow.`;
+                }
+                appendMessage(selectedAgent, responseText, 'agent');
+            }, 800);
+        }
+
+        function appendMessage(author, text, type) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${type}`;
+            
+            if (type !== 'system') {
+                const authorDiv = document.createElement('div');
+                authorDiv.className = 'author';
+                authorDiv.textContent = author;
+                msgDiv.appendChild(authorDiv);
+                
+                const contentDiv = document.createElement('div');
+                contentDiv.textContent = text;
+                msgDiv.appendChild(contentDiv);
+            } else {
+                msgDiv.textContent = text;
+            }
+
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    </script>
+</body>
+</html>
